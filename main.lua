@@ -4,7 +4,7 @@ require("lore")
 require("minigame-1-rename-me")
 
 function love.load()
-    scene="title"
+    scene="minigame-1-rename-me"
 end
 
 function love.update(dt)
@@ -29,6 +29,6 @@ function love.draw()
     elseif scene=="lore" then
         loredraw()
     else
-        love.graphics.print("???", 200,200) 
+        love.graphics.print("???", 200,200)
     end
 end
