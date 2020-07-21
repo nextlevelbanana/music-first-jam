@@ -31,7 +31,7 @@ function minigame1load()
 
   -- Enemy controller variables
   enemy1 = Enemy(300, 200)
-  enemy2 = Enemy(700, 500)
+  --enemy2 = Enemy(700, 500)
 
   -- Animations
   ghost = {}
@@ -122,7 +122,7 @@ function minigame1update(dt)
   -- Enemy AI controller
   if not win and timeElapsed > 2 then
     enemy1:update(finderLens, dt)
-    enemy2:update(finderLens, dt)
+    --enemy2:update(finderLens, dt)
   end
 
   -- Distance checks
@@ -180,7 +180,7 @@ function minigame1draw()
    love.graphics.draw(finderLens.image, finderLens.x - 46, finderLens.y - 48) -- Offset numbers that will change with new artwork for finderHandle
 
    enemy1:draw()
-   enemy2:draw()
+   --enemy2:draw()
 
   if win then
       love.graphics.setColor(1, 1, 1)
