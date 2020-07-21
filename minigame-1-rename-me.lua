@@ -194,6 +194,7 @@ function minigame1draw()
   end
 
   if distanceBetween(enemy1.x, enemy1.y, finderLens.x, finderLens.y) < enemy1.size then
+    love.graphics.setColor(1, 1, 1)
     love.graphics.print("Busted!", finderLens.x - 46, finderLens.y - 100)
     busted = true
 
@@ -224,6 +225,6 @@ end
 
 function drawText(text)
   love.graphics.draw(speechBubble, 17, 100)
-  love.graphics.setColor(0.1, 0.1, 0.1)
+  love.graphics.setColor(0.2, 0.2, 0.2)
   love.graphics.printf(text, 30, 113, 180)
 end
