@@ -1,10 +1,18 @@
+Object = require("libs/classic")
+
 require("title")
 require("menu")
 require("lore")
 require("minigame-1-rename-me")
 
+bgm = love.audio.newSource("assets/music/main_theme.wav", "stream")
+bgm:setLooping(true)
+bgm:setVolume(0.5)
+love.audio.play(bgm)
+
 function love.load()
-    scene="minigame-1-rename-me"
+    minigame1load()
+    scene="title"
 end
 
 function love.update(dt)

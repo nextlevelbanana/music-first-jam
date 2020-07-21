@@ -1,7 +1,69 @@
+rockwell_title = love.graphics.newFont("fonts/Rockwell.TTF", 200)
+rockwell_button = love.graphics.newFont("fonts/Rockwell.TTF", 30)
+require("classes/button")
+
+title = {}
+title.name = "title"
+title.x = 100
+title.y = 0
+title.font = rockwell_title
+
+cursor = {}
+cursor.x = 480
+cursor.y = 275
+cursor.size = 10
+
+bgm = love.audio.newSource("assets/music/main_theme.wav", "stream")
+
+buttonStart = Button(500, 250, "New Game", rockwell_button)
+buttonCredits = Button(500, 320, "Lore", rockwell_button)
+buttonExit = Button(500, 390, "Exit", rockwell_button)
+
+posStart = 275
+posCredits = 345
+posExit = 415
+
 function titledraw()
-    love.graphics.setColor(0.5,0.1,0.5)
-    love.graphics.print(scene, 300,300)
+  love.graphics.setBackgroundColor(0.2, 0.2, 0.2)
+  love.graphics.setColor(1,1,1)
+  love.graphics.setFont(rockwell_title)
+  love.graphics.print(title.name, title.x, title.y)
+
+  buttonStart:draw()
+  buttonCredits:draw()
+  buttonExit:draw()
+
+  love.graphics.circle("fill", cursor.x, cursor.y, cursor.size)
 end
 
-function titleupdate()
+function titleupdate(dt)
+
+  if love.keyboard.isDown('down','s') and cursor.y < 415 then
+    cursor.y = cursor.y + 70
+    love.event.wait(20)
+  end
+
+  if love.keyboard.isDown('up','w') and cursor.y > 275 then
+    cursor.y = cursor.y - 70
+    love.event.wait(20)
+  end
+
+  if love.keyboard.isDown('space') and cursor.y == posStart then
+    scene="minigame-1-rename-me"
+  elseif love.keyboard.isDown('space') and cursor.y == posCredits then
+    scene="lore"
+  elseif love.keyboard.isDown('space') and cursor.y == posExit then
+    love.event.quit(0)
+  end
+
+end
+
+function distanceBetween (x1, y1, x2, y2)
+	return math.sqrt((y2-y1)^2 + (x2-x1)^2)
+end
+
+function checkButtonPress(x, y)
+  if love.mouse.isDown(1) and love.mouse.getX() <= x and love.mouse.getY() <= y then
+    return true
+  end
 end

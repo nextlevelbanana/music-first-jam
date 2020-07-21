@@ -1,65 +1,74 @@
+require("classes/enemy")
+
 ---------------------------------
 -- Local variables
 ---------------------------------
 
--- Playable area container
-local playableArea = {}
-playableArea.x = 250
-playableArea.y = 20
-playableArea.border = 20
-playableArea.size_x = love.graphics.getWidth() - playableArea.x - playableArea.border
-playableArea.size_y = love.graphics.getHeight() - playableArea.y - playableArea.border
+function minigame1load()
+  -- Playable area container
+  playableArea = {}
+  playableArea.x = 250
+  playableArea.y = 20
+  playableArea.border = 20
+  playableArea.size_x = love.graphics.getWidth() - playableArea.x - playableArea.border
+  playableArea.size_y = love.graphics.getHeight() - playableArea.y - playableArea.border
 
--- Main player cursor
-local finderLens = {}  -- finderLens is the main controller component that reveals hidden "clues" within the background layer
-finderLens.x = (love.graphics.getWidth() / 2) + (playableArea.x / 2)
-finderLens.y = (love.graphics.getHeight() / 2) + (playableArea.y / 2)
-finderLens.size = 40  -- Size of the lens that reveals objects, 40 fits nicely with the current size of finderHandle, will change with art
-finderLens.speed = 200  -- Set player movement speed
-finderLens.image = love.graphics.newImage("assets/temp/finderHandle.png")
+  -- Main player cursor
+  finderLens = {}  -- finderLens is the main controller component that reveals hidden "clues" within the background layer
+  finderLens.x = (love.graphics.getWidth() / 2) + (playableArea.x / 2)
+  finderLens.y = (love.graphics.getHeight() / 2) + (playableArea.y / 2)
+  finderLens.size = 40  -- Size of the lens that reveals objects, 40 fits nicely with the current size of finderHandle, will change with art
+  finderLens.speed = 200  -- Set player movement speed
+  finderLens.image = love.graphics.newImage("assets/temp/finderHandle.png")
+  isMoving = false
 
-local clueInst = {}
-clueInst.x = 400
-clueInst.y = 300
-clueInst.size = 40
-clueInst.image = love.graphics.newImage("assets/temp/clueIconTemp.png")
+  -- Clue instantiator
+  clueInst = {}
+  clueInst.x = 400
+  clueInst.y = 300
+  clueInst.size = 40
+  clueInst.image = love.graphics.newImage("assets/temp/clueIconTemp.png")
 
--- Enemy controller variables
-local enemy = {}
-enemy.x = 300
-enemy.y = 200
-enemy.speed = 100
-enemy.angle = 0
-enemy.image = love.graphics.newImage("assets/temp/arrowRight.png")
-enemy.size = 40
-enemy.origin_x = enemy.image:getWidth() / 2
-enemy.origin_y = enemy.image:getHeight() / 2
+  -- Enemy controller variables
+  enemy1 = Enemy(300, 200)
+  enemy2 = Enemy(700, 500)
 
-local ghost = {}
-for i = 0,7 do
-  table.insert(ghost, love.graphics.newImage("assets/ghost_detective/ghost"..i..".png"))
+  -- Animations
+  ghost = {}
+  for i = 0,7 do
+    table.insert(ghost, love.graphics.newImage("assets/ghost_detective/ghost"..i..".png"))
+  end
+  animationFrame = 1
+
+  -- Audio and SFX
+
+  -- local bgm = love.audio.newSource("assets/music/main_theme.wav", "stream")
+  ghostVoice = {}
+  for i = 0,4 do
+    table.insert(ghostVoice, love.audio.newSource("assets/sfx/hmm"..i..".wav", "static"))
+  end
+
+  -- Bounding box for keeping the finderLens in the playable area
+  roomWidth = playableArea.size_x - finderLens.size
+  roomHeight = playableArea.size_y - finderLens.size
+
+  -- Unsorted variables
+  bgColor = {0.15, 0.15, 0.15}
+  win = false
+  clueColor = 0.3
+  timeElapsed = 0
+  speechBubble = love.graphics.newImage("assets/temp/speechBubbleTemp.png")
+  busted = false
+
+  -- Unsorted set conditions
+  love.graphics.newFont(35)
+  love.graphics.setBackgroundColor(0.2, 0.2, 0.2)
+
+  -- Local Audio params
+  -- bgm:setLooping(true)
+  -- bgm:setVolume(0.5)
+  -- love.audio.play(bgm)
 end
-
-local ghostVoice = {}
-for i = 0,4 do
-  table.insert(ghostVoice, love.audio.newSource("assets/sfx/hmm"..i..".wav", "static"))
-end
-
-local isMoving = false
-local roomWidth = playableArea.size_x - finderLens.size
-local roomHeight = playableArea.size_y - finderLens.size
-local bgm = love.audio.newSource("assets/music/main_theme.wav", "stream")
-local animationFrame = 1
-local bgColor = {0.15, 0.15, 0.15}
-local win = false
-local clueColor = 0.3
-local timeElapsed = 0
-local speechBubble = love.graphics.newImage("assets/temp/speechBubbleTemp.png")
-
-love.graphics.newFont(35)
-love.graphics.setBackgroundColor(0.2, 0.2, 0.2)
-bgm:setLooping(true)
-love.audio.play(bgm)
 
 ---------------------------------
 -- Early functions (dependencies)
@@ -112,16 +121,14 @@ function minigame1update(dt)
 
   -- Enemy AI controller
   if not win and timeElapsed > 2 then
-    enemy.angle = math.atan2(finderLens.y - enemy.y, finderLens.x - enemy.x)
-    cos = math.cos(enemy.angle)
-    sin = math.sin(enemy.angle)
-    enemy.x = enemy.x + enemy.speed * cos * dt
-    enemy.y = enemy.y + enemy.speed * sin * dt
+    enemy1:update(finderLens, dt)
+    enemy2:update(finderLens, dt)
   end
 
   -- Distance checks
-  if distanceBetween(enemy.x, enemy.y, finderLens.x, finderLens.y) < enemy.size then
-    love.event.quit("restart")
+  if busted then
+    love.event.wait(1000)
+    love.load()
   end
 
   --for i = clues
@@ -133,6 +140,10 @@ function minigame1update(dt)
     if clueColor >= 1 then
       win = true
     end
+  end
+
+  if love.keyboard.isDown('escape') then
+    love.load()
   end
 
 end
@@ -168,8 +179,8 @@ function minigame1draw()
    love.graphics.setColor(1, 1, 1, 1) -- Color for finderHandle
    love.graphics.draw(finderLens.image, finderLens.x - 46, finderLens.y - 48) -- Offset numbers that will change with new artwork for finderHandle
 
-   love.graphics.draw(enemy.image, enemy.x, enemy.y, enemy.angle,
-      1, 1, enemy.origin_x, enemy.origin_y)
+   enemy1:draw()
+   enemy2:draw()
 
   if win then
       love.graphics.setColor(1, 1, 1)
@@ -180,6 +191,12 @@ function minigame1draw()
     drawText("Oh! I just need more time on that clue!")
   elseif timeElapsed > 5 and clueColor <= 0.3 then
     drawText("There must be a clue around here somewhere...")
+  end
+
+  if distanceBetween(enemy1.x, enemy1.y, finderLens.x, finderLens.y) < enemy1.size then
+    love.graphics.print("Busted!", finderLens.x - 46, finderLens.y - 100)
+    busted = true
+
   end
 
 end
