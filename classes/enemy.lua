@@ -3,7 +3,9 @@
 --Pass Object as first argument
 Enemy = Object.extend(Object)
 
-function Enemy.new(self, x, y)
+local timeElapsed = 0
+
+function Enemy.new(self, u_state, d_state, x, y)
   self.x = x
   self.y = y
   self.speed = 100
@@ -12,16 +14,20 @@ function Enemy.new(self, x, y)
   self.size = 40
   self.origin_x = self.image:getWidth() / 2
   self.origin_y = self.image:getHeight() / 2
+  self.update_state = u_state
+  self.draw_state = d_state
 end
 
 function Enemy:update(target, dt)
+  timeElapsed = timeElapsed + 1 * dt
 
-  -- NOTE: this code is currently contained in the minigame update per enemy instance
-  self.angle = math.atan2(target.y - self.y, target.x - self.x)
-  cos = math.cos(self.angle)
-  sin = math.sin(self.angle)
-  self.x = self.x + self.speed * cos * dt
-  self.y = self.y + self.speed * sin * dt
+  if timeElapsed > 2 then
+    self.angle = math.atan2(target.y - self.y, target.x - self.x)
+    cos = math.cos(self.angle)
+    sin = math.sin(self.angle)
+    self.x = self.x + self.speed * cos * dt
+    self.y = self.y + self.speed * sin * dt
+  end
 end
 
 function Enemy:draw()

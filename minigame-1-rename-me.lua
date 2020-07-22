@@ -1,10 +1,31 @@
 require("classes/enemy")
+require("classes/clue")
+
+-- Animations
+ghost = {}
+for i = 0,7 do
+  table.insert(ghost, love.graphics.newImage("assets/ghost_detective/ghost"..i..".png"))
+end
+animationFrame = 1
+
+-- Audio and SFX
+ghostVoice = {}
+for i = 0,4 do
+  table.insert(ghostVoice, love.audio.newSource("assets/sfx/hmm"..i..".wav", "static"))
+end
+
+letters = {"E", "G", "B", "D", "F"}
+numOfClues = #letters
+
+bgColor = {0.15, 0.15, 0.15}
+speechBubble = love.graphics.newImage("assets/temp/speechBubbleTemp.png")
 
 ---------------------------------
 -- Local variables
 ---------------------------------
 
 function minigame1load()
+
   -- Playable area container
   playableArea = {}
   playableArea.x = 250
@@ -22,52 +43,32 @@ function minigame1load()
   finderLens.image = love.graphics.newImage("assets/temp/finderHandle.png")
   isMoving = false
 
-  -- Clue instantiator
-  clueInst = {}
-  clueInst.x = 400
-  clueInst.y = 300
-  clueInst.size = 40
-  clueInst.image = love.graphics.newImage("assets/temp/clueIconTemp.png")
+  -- Instantiate enemies
+  enemy1 = Enemy(false, false, 300, 200)
 
-  -- Enemy controller variables
-  enemy1 = Enemy(300, 200)
-  --enemy2 = Enemy(700, 500)
-
-  -- Animations
-  ghost = {}
-  for i = 0,7 do
-    table.insert(ghost, love.graphics.newImage("assets/ghost_detective/ghost"..i..".png"))
-  end
-  animationFrame = 1
-
-  -- Audio and SFX
-
-  -- local bgm = love.audio.newSource("assets/music/main_theme.wav", "stream")
-  ghostVoice = {}
-  for i = 0,4 do
-    table.insert(ghostVoice, love.audio.newSource("assets/sfx/hmm"..i..".wav", "static"))
+  -- Instantiate clues
+  clueColor = {}
+  for i = 1,5 do
+    table.insert(clueColor, 0.3)
   end
 
+  clue1 = Clue(false, true, 400, 300, letters[1])
+  clue2 = Clue(false, false, 600, 200, letters[2])
+  clue3 = Clue(false, false, 300, 500, letters[3])
+  clue4 = Clue(false, false, 400, 100, letters[4])
+  clue5 = Clue(false, false, 700, 300, letters[5])
+
+  clues = {clue1, clue2, clue3, clue4, clue5}
   -- Bounding box for keeping the finderLens in the playable area
   roomWidth = playableArea.size_x - finderLens.size
   roomHeight = playableArea.size_y - finderLens.size
-
   -- Unsorted variables
-  bgColor = {0.15, 0.15, 0.15}
   win = false
-  clueColor = 0.3
   timeElapsed = 0
-  speechBubble = love.graphics.newImage("assets/temp/speechBubbleTemp.png")
   busted = false
-
   -- Unsorted set conditions
   love.graphics.newFont(35)
   love.graphics.setBackgroundColor(0.2, 0.2, 0.2)
-
-  -- Local Audio params
-  -- bgm:setLooping(true)
-  -- bgm:setVolume(0.5)
-  -- love.audio.play(bgm)
 end
 
 ---------------------------------
@@ -120,9 +121,12 @@ function minigame1update(dt)
   end
 
   -- Enemy AI controller
-  if not win and timeElapsed > 2 then
+  if not win and clue2.update_state then
+    --local timeElapsed = 0
+    --if timeElapsed > 2 then
     enemy1:update(finderLens, dt)
-    --enemy2:update(finderLens, dt)
+    enemy1.update_state = true
+    enemy1.draw_state = true
   end
 
   -- Distance checks
@@ -132,15 +136,25 @@ function minigame1update(dt)
   end
 
   --for i = clues
-  if distanceBetween(clueInst.x, clueInst.y, finderLens.x, finderLens.y) < clueInst.size then
-    clueColor = clueColor + (0.3 * dt)
-    if love.audio.getActiveSourceCount() < 2 then
-      love.audio.play(ghostVoice[math.random(0,4)])
+
+  for i = 1,5 do
+    if clues[i].update_state and i < #letters then
+      clues[i+1]:update(clueColor[i+1], dt)
     end
-    if clueColor >= 1 then
-      win = true
+    if clues[i].draw_state then
+      clues[i]:update(clueColor[i], dt)
+      if distanceBetween(clues[i].x, clues[i].y, finderLens.x, finderLens.y) < clues[i].size then
+        clueColor[i] = clueColor[i] + (0.3 * dt)
+        if love.audio.getActiveSourceCount() < 2 and clues[i].draw_state then
+          love.audio.play(ghostVoice[math.random(1,5)])
+        end
+        if clueColor[i] >= 1 then
+          clues[i].update_state = true
+        end
+      end
     end
   end
+
 
   if love.keyboard.isDown('escape') then
     love.load()
@@ -155,6 +169,8 @@ end
 function minigame1draw()
    -- Each pixel touched by the circle will have its stencil value set to 1. The rest will be 0.
    love.graphics.stencil(finderLensStencil, "replace", 1)
+
+   --love.graphics.print(numOfClues, 100, 100)
 
    -- Draw ghost
    love.graphics.push()
@@ -171,15 +187,24 @@ function minigame1draw()
    love.graphics.rectangle("fill", playableArea.x, playableArea.y,
          playableArea.size_x, playableArea.size_y)
 
-   -- generateClue can be used to instance any raster image given a variable name in love.load() above
-   clue = generateClue(clueInst.image, 400, 300) -- Create rightenemy at 400, 300
-   --generateClue(clueInst.image, 600, 300) -- Create rightenemy at 600, 300
+
+   for i = 1,5 do
+     if clues[i].draw_state then
+       clues[i]:draw(clueColor[i], bgColor, letters[i])
+       if clueColor[i] >= 1 and i < (#letters) then
+         --clues[i+1]:draw(clueColor[i+1], bgColor, letters[i+1])
+         clues[i+1].draw_state = true
+       end
+     end
+   end
 
    love.graphics.setStencilTest() -- Handles wild stencil stuff I don't fully understand
    love.graphics.setColor(1, 1, 1, 1) -- Color for finderHandle
    love.graphics.draw(finderLens.image, finderLens.x - 46, finderLens.y - 48) -- Offset numbers that will change with new artwork for finderHandle
 
-   enemy1:draw()
+   if clue2.update_state then
+     enemy1:draw()
+   end
    --enemy2:draw()
 
   if win then
@@ -187,17 +212,16 @@ function minigame1draw()
       love.graphics.print("You won!", 0, 0)
   end
 
-  if timeElapsed > 5 and clueColor > 0.3 then
+  if timeElapsed > 5 and clueColor[1] > 0.3 then
     drawText("Oh! I just need more time on that clue!")
-  elseif timeElapsed > 5 and clueColor <= 0.3 then
+  elseif timeElapsed > 5 and clueColor[1] <= 0.3 then
     drawText("There must be a clue around here somewhere...")
   end
 
-  if distanceBetween(enemy1.x, enemy1.y, finderLens.x, finderLens.y) < enemy1.size then
+  if distanceBetween(enemy1.x, enemy1.y, finderLens.x, finderLens.y) < enemy1.size and enemy1.draw_state then
     love.graphics.setColor(1, 1, 1)
     love.graphics.print("Busted!", finderLens.x - 46, finderLens.y - 100)
     busted = true
-
   end
 
 end
@@ -205,18 +229,6 @@ end
 ---------------------------------
 -- Other functions
 ---------------------------------
-
-function generateClue(image, x, y)
-  -- Only allow rendering on pixels whose stencil value is greater than 0.
-  love.graphics.setStencilTest("greater", 0)
-  love.graphics.setColor(clueColor, clueColor, clueColor)
-  love.graphics.draw(image, x, y)
-
-  -- Now only allow rendering on pixels whose stencil value is equal to 0.
-  love.graphics.setStencilTest("equal", 0)
-  love.graphics.setColor(bgColor)
-  love.graphics.draw(image, x, y)
-end
 
 function distanceBetween (x1, y1, x2, y2)
 	-- distance formula: d = √(y2 - y1)^2 + (x2 - x1)^2

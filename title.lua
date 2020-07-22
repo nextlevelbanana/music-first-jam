@@ -13,7 +13,15 @@ cursor.x = 480
 cursor.y = 275
 cursor.size = 10
 
-bgm = love.audio.newSource("assets/music/main_theme.wav", "stream")
+-- Main Menu audio
+sfxNewGame = love.audio.newSource("assets/sfx/sfx_rim_tom.wav", "static")
+sfxNewGame:setVolume(0.5)
+sfxLore = love.audio.newSource("assets/sfx/sfx_bass_longhigh.wav", "static")
+sfxLore:setVolume(0.5)
+sfxCursorUp = love.audio.newSource("assets/sfx/sfx_bass_shorthigh.wav", "static")
+sfxCursorUp:setVolume(0.5)
+sfxCursorDown = love.audio.newSource("assets/sfx/sfx_bass_shortlow.wav", "static")
+sfxCursorDown:setVolume(0.5)
 
 buttonStart = Button(500, 250, "New Game", rockwell_button)
 buttonCredits = Button(500, 320, "Lore", rockwell_button)
@@ -39,18 +47,22 @@ end
 function titleupdate(dt)
 
   if love.keyboard.isDown('down','s') and cursor.y < 415 then
+    love.audio.play(sfxCursorDown)
     cursor.y = cursor.y + 70
     love.event.wait(20)
   end
 
   if love.keyboard.isDown('up','w') and cursor.y > 275 then
+    love.audio.play(sfxCursorUp)
     cursor.y = cursor.y - 70
     love.event.wait(20)
   end
 
   if love.keyboard.isDown('space') and cursor.y == posStart then
+    love.audio.play(sfxNewGame)
     scene="minigame-1-rename-me"
   elseif love.keyboard.isDown('space') and cursor.y == posCredits then
+    love.audio.play(sfxLore)
     scene="lore"
   elseif love.keyboard.isDown('space') and cursor.y == posExit then
     love.event.quit(0)
