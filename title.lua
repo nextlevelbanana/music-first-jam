@@ -15,7 +15,7 @@ cursor.size = 10
 
 -- Main Menu audio
 sfxNewGame = love.audio.newSource("assets/sfx/sfx_rim_tom.wav", "static")
-sfxNewGame:setVolume(1)
+sfxNewGame:setVolume(0.4)
 sfxLore = love.audio.newSource("assets/sfx/sfx_bass_longhigh.wav", "static")
 sfxLore:setVolume(1)
 sfxCursorUp = love.audio.newSource("assets/sfx/sfx_bass_shorthigh.wav", "static")

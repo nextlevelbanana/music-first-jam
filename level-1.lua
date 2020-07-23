@@ -1,19 +1,26 @@
 require("classes/enemy")
 require("classes/clue")
 
--- Audio and SFX
-ghostVoice = {}
-for i = 0,4 do
-  table.insert(ghostVoice, love.audio.newSource("assets/sfx/hmm"..i..".wav", "static"))
-end
-
-gameOver = love.audio.newSource("assets/music/game_over.wav", "static")
-
 letters = {"E", "G", "B", "D", "F"}
 numOfClues = #letters
 
 bgColor = {0.15, 0.15, 0.15}
 speechBubble = love.graphics.newImage("assets/temp/speechBubbleTemp.png")
+
+-- Audio and SFX
+gameOver = love.audio.newSource("assets/music/game_over.wav", "static")
+
+ghostVoice = {}
+for i = 0,4 do
+  table.insert(ghostVoice, love.audio.newSource("assets/sfx/hmm"..i..".wav", "static"))
+end
+
+letterChime = {}
+for i = 1,#letters do
+  table.insert(letterChime, love.audio.newSource("assets/sfx/letter_clues/marim_"..letters[i]..".wav", "static"))
+  letterChime[i]:setVolume(0.3)
+  --letterChime[i].played = false
+end
 
 
 ---------------------------------
@@ -148,10 +155,11 @@ function level1update(dt)
       clues[i]:update(clueColor[i], dt)
       if distanceBetween(clues[i].x, clues[i].y, finderLens.x, finderLens.y) < clues[i].size then
         clueColor[i] = clueColor[i] + (0.3 * dt)
-        if love.audio.getActiveSourceCount() < 2 and clues[i].draw_state then
+        if love.audio.getActiveSourceCount() < 2 and clues[i].update_state == false then
           love.audio.play(ghostVoice[math.random(1,5)])
         end
-        if clueColor[i] >= 1 then
+        if clueColor[i] >= 1 and clues[i].update_state == false then
+          love.audio.play(letterChime[i])
           clues[i].update_state = true
         end
       end
@@ -189,7 +197,6 @@ function level1draw()
      if clues[i].draw_state then
        clues[i]:draw(clueColor[i], bgColor, letters[i])
        if clueColor[i] >= 1 and i < (#letters) then
-         --clues[i+1]:draw(clueColor[i+1], bgColor, letters[i+1])
          clues[i+1].draw_state = true
        end
      end
