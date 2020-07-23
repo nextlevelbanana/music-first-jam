@@ -1,9 +1,10 @@
 Object = require("libs/classic")
+require("tween")
 
 require("title")
 require("menu")
 require("lore")
-require("minigame-1-rename-me")
+require("level-1")
 
 bgm = love.audio.newSource("assets/music/main_theme.wav", "stream")
 bgm:setLooping(true)
@@ -11,7 +12,7 @@ bgm:setVolume(0.5)
 love.audio.play(bgm)
 
 function love.load()
-    minigame1load()
+    level1load()
     scene="title"
 end
 
@@ -20,8 +21,8 @@ function love.update(dt)
         titleupdate()
     elseif scene=="menu" then
         menuupdate()
-    elseif scene=="minigame-1-rename-me" then
-        minigame1update(dt)
+    elseif scene=="level-1" then
+        level1update(dt)
     elseif scene=="lore" then
         loreupdate()
     end
@@ -32,8 +33,8 @@ function love.draw()
         titledraw()
     elseif scene=="menu" then
         menudraw()
-    elseif scene=="minigame-1-rename-me" then
-        minigame1draw()
+    elseif scene=="level-1" then
+        level1draw()
     elseif scene=="lore" then
         loredraw()
     else

@@ -15,13 +15,13 @@ cursor.size = 10
 
 -- Main Menu audio
 sfxNewGame = love.audio.newSource("assets/sfx/sfx_rim_tom.wav", "static")
-sfxNewGame:setVolume(0.5)
+sfxNewGame:setVolume(1)
 sfxLore = love.audio.newSource("assets/sfx/sfx_bass_longhigh.wav", "static")
-sfxLore:setVolume(0.5)
+sfxLore:setVolume(1)
 sfxCursorUp = love.audio.newSource("assets/sfx/sfx_bass_shorthigh.wav", "static")
-sfxCursorUp:setVolume(0.5)
+sfxCursorUp:setVolume(1)
 sfxCursorDown = love.audio.newSource("assets/sfx/sfx_bass_shortlow.wav", "static")
-sfxCursorDown:setVolume(0.5)
+sfxCursorDown:setVolume(1)
 
 buttonStart = Button(500, 250, "New Game", rockwell_button)
 buttonCredits = Button(500, 320, "Lore", rockwell_button)
@@ -60,7 +60,7 @@ function titleupdate(dt)
 
   if love.keyboard.isDown('space') and cursor.y == posStart then
     love.audio.play(sfxNewGame)
-    scene="minigame-1-rename-me"
+    scene="level-1"
   elseif love.keyboard.isDown('space') and cursor.y == posCredits then
     love.audio.play(sfxLore)
     scene="lore"
