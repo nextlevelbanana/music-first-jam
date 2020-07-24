@@ -1,30 +1,30 @@
 Object = require("libs/classic")
-require("tween")
+tween = require("libs/tween")
+cron = require("libs/cron")
+
 
 require("title")
 require("menu")
 require("lore")
 require("level-1")
 
-bgm = love.audio.newSource("assets/music/main_theme.wav", "stream")
-bgm:setLooping(true)
-bgm:setVolume(0.5)
-love.audio.play(bgm)
+math.randomseed(os.time())
 
 function love.load()
+    titleload()
     level1load()
     scene="title"
 end
 
 function love.update(dt)
     if scene=="title" then
-        titleupdate()
+        titleupdate(dt)
     elseif scene=="menu" then
-        menuupdate()
+        menuupdate(dt)
     elseif scene=="level-1" then
         level1update(dt)
     elseif scene=="lore" then
-        loreupdate()
+        loreupdate(dt)
     end
 end
 

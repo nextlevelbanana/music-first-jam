@@ -8,9 +8,9 @@ local timeElapsed = 0
 function Enemy.new(self, u_state, d_state, x, y)
   self.x = x
   self.y = y
-  self.speed = 100
+  self.speed = 75
   self.angle = 0
-  self.image = love.graphics.newImage("assets/temp/arrowRight.png")
+  self.image = love.graphics.newImage("assets/enemies/angry.png")
   self.size = 40
   self.origin_x = self.image:getWidth() / 2
   self.origin_y = self.image:getHeight() / 2
@@ -31,6 +31,6 @@ function Enemy:update(target, dt)
 end
 
 function Enemy:draw()
-  love.graphics.draw(self.image, self.x, self.y, self.angle,
+  love.graphics.draw(self.image, self.x, self.y, 0,
      1, 1, self.origin_x, self.origin_y)
 end
