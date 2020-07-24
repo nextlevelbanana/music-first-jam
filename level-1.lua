@@ -194,6 +194,11 @@ function level1update(dt)
     end
   end
 
+  --  Win condition
+  if clues[5].update_state then
+    win = true
+  end
+
   -- Escape key back to main menu
   if love.keyboard.isDown('escape') then
     bgm:stop()
@@ -255,8 +260,14 @@ function level1draw()
    --enemy2:draw()
 
   if win then
-      love.graphics.setColor(1, 1, 1)
-      love.graphics.print("You won!", 0, 0)
+    love.graphics.setColor(1,1,1)
+    local spriteNum1 = math.floor(
+      winStamp.currentTime / winStamp.duration *
+      #winStamp.quads) + 1
+    love.graphics.draw(
+      winStamp.spriteSheet, winStamp.quads[spriteNum1],
+      love.graphics.getWidth() / 2 - 125,
+      love.graphics.getHeight() / 2 - 125, 0, 1)
   end
 
   love.graphics.setColor(0,0,0,levelFader)
