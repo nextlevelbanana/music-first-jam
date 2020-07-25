@@ -1,28 +1,35 @@
-rockwell_title = love.graphics.newFont("fonts/Rockwell.TTF", 200)
+rockwell_title = love.graphics.newFont("fonts/Rockwell.TTF", 150)
 rockwell_button = love.graphics.newFont("fonts/Rockwell.TTF", 30)
+rockwell_speech = love.graphics.newFont("fonts/Rockwell.TTF", 28)
 require("classes/button")
 
 local cron = require("libs/cron")
 local tween = require("libs/tween")
 
+local background = love.graphics.newImage("assets/backgrounds/bg_title.jpg")
+
 title = {}
-title.name = "title"
-title.x = 100
-title.y = -100
+title.name = "ghost detective"
+title.x = 50
+title.y = -200
 title.font = rockwell_title
 
-titleTween = tween.new(2, title, {y = 0}, 'outBounce')
+titleTween = tween.new(2, title, {y = 200}, 'outCubic')
 
 cursor = {}
-cursor.x = 450
+cursor.x = 500
 cursor.y = 260
 cursor.angle = 0
 cursor.scale = 1
 cursor.image = love.graphics.newImage("assets/temp/finderHandleSmall.png")
 
-buttonStart = Button(500, 250, "New Game", rockwell_button)
-buttonCredits = Button(500, 320, "Lore", rockwell_button)
-buttonExit = Button(500, 390, "Exit", rockwell_button)
+posStart = 260
+posCredits = 330
+posExit = 400
+
+buttonStart = Button(550, posStart - 10, "New Game", rockwell_button)
+buttonCredits = Button(550, posCredits - 10, "Credits", rockwell_button)
+buttonExit = Button(550, posExit - 10, "Exit", rockwell_button)
 
 function titleload()
 
@@ -37,8 +44,8 @@ function titleload()
 
   sfxNewGame = love.audio.newSource("assets/sfx/sfx_rim_tom.wav", "static")
   sfxNewGame:setVolume(0.4)
-  sfxLore = love.audio.newSource("assets/sfx/sfx_bass_longhigh_1.wav", "static")
-  sfxLore:setVolume(0.4)
+  sfxCredits = love.audio.newSource("assets/sfx/sfx_bass_longhigh_1.wav", "static")
+  sfxCredits:setVolume(0.4)
   sfxCursorUp0 = love.audio.newSource("assets/sfx/sfx_bass_shorthigh_1.wav", "static")
   sfxCursorUp0:setVolume(0.2)
   sfxCursorUp1 = love.audio.newSource("assets/sfx/sfx_bass_shorthigh_1.wav", "static")
@@ -49,10 +56,6 @@ function titleload()
   sfxCursorDown1 = love.audio.newSource("assets/sfx/sfx_bass_shortlow_1.wav", "static")
   sfxCursorDown1:setPitch(1.1)
   sfxCursorDown1:setVolume(0.15)
-
-  posStart = 260
-  posCredits = 330
-  posExit = 400
 
   local moveClock
   allowMove = true
@@ -65,8 +68,9 @@ end
 function titledraw()
   love.graphics.setBackgroundColor(0.2, 0.2, 0.2)
   love.graphics.setColor(1,1,1)
+  love.graphics.draw(background, 0, 0, 0, 0.5, 0.5)
   love.graphics.setFont(rockwell_title)
-  love.graphics.print(title.name, title.x, title.y)
+  love.graphics.printf(title.name, title.x, title.y, 450)
 
   buttonStart:draw()
   buttonCredits:draw()
@@ -102,7 +106,7 @@ function titleupdate(dt)
     love.audio.play(sfxNewGame)
     titleFaderState = true
   elseif love.keyboard.isDown('space') and cursor.y == posCredits then
-    love.audio.play(sfxLore)
+    love.audio.play(sfxCredits)
     scene="lore"
   elseif love.keyboard.isDown('space') and cursor.y == posExit then
     love.event.quit(0)

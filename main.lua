@@ -2,7 +2,6 @@ Object = require("libs/classic")
 tween = require("libs/tween")
 cron = require("libs/cron")
 
-
 require("title")
 require("menu")
 require("lore")

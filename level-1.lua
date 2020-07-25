@@ -4,10 +4,12 @@ require("classes/clue")
 letters = {"E", "G", "B", "D", "F"}
 numOfClues = #letters
 
-bgColor = {0.15, 0.15, 0.15}
+bgColor = {0.15, 0.15, 0.15, 0}
 speechBubble = love.graphics.newImage("assets/temp/speechBubbleTemp.png")
 
 -- Audio and SFX
+levelClear = love.audio.newSource("assets/music/level_clear.wav", "static")
+
 gameOver = love.audio.newSource("assets/music/game_over.wav", "static")
 gameOver:setVolume(0.3)
 
@@ -23,6 +25,10 @@ for i = 1,#letters do
   --letterChime[i].played = false
 end
 
+local bgLevel1 = love.graphics.newImage("assets/backgrounds/bg_level1.jpg")
+
+local restart = false
+
 ---------------------------------
 -- Loaded variables on restart
 ---------------------------------
@@ -35,8 +41,9 @@ function level1load()
   ghostAnim = newAnimation(love.graphics.newImage("assets/ghost_detective/idleAnim.png"), 250, 250, 4)
   winStamp = newAnimation(love.graphics.newImage("assets/ghost_detective/winStamp.png"), 250, 250, 4)
   loseStamp = newAnimation(love.graphics.newImage("assets/ghost_detective/loseStamp.png"), 250, 250, 4)
+  angryAnim = newAnimation(love.graphics.newImage("assets/enemies/angryAnim.png"), 250, 250, 4)
 
-  anims = {ghostAnim, winStamp, loseStamp}
+  anims = {ghostAnim, winStamp, loseStamp, angryAnim}
   -- Playable area container
   playableArea = {}
   playableArea.x = 250
@@ -86,13 +93,11 @@ function level1load()
   busted = false
   -- Unsorted set conditions
   love.graphics.newFont(35)
-  --alley = love.graphics.newImage("alley.jpg")
   love.graphics.setBackgroundColor(0.2, 0.2, 0.2, 0.4)
 
   local speakClock
   allowSpeak = true
   levelFader = 0
-
 end
 
 ---------------------------------
@@ -111,10 +116,15 @@ end
 
 function level1update(dt)
 
+  if not love.graphics.setFont(rockwell_speech) then
+    love.graphics.setFont(rockwell_speech)
+  end
+
   timeElapsed = timeElapsed + 1 * dt
 
   if speakClock then speakClock:update(dt) end
 
+  -- Loss condition controller
   if not bgm:isPlaying() and not busted then
     bgm = love.audio.newSource("assets/music/xylo_marim_perc_loop.wav", "stream")
     bgm:setVolume(0.5)
@@ -141,29 +151,31 @@ function level1update(dt)
   end
 
   -- Player controller using arrow keys or WASD
-  if finderLens.x <= roomWidth + playableArea.x and
-    love.keyboard.isDown('right', 'd') then
-      finderLens.x = finderLens.x + finderLens.speed * dt
-      isMoving = true
-  end
-  if finderLens.x >= finderLens.size + playableArea.x and
-    love.keyboard.isDown('left', 'a') then
-      finderLens.x = finderLens.x - finderLens.speed * dt
-      isMoving = true
-  end
-  if finderLens.y <= roomHeight + playableArea.y and
-    love.keyboard.isDown('down', 's') then
-      finderLens.y = finderLens.y + finderLens.speed * dt
-      isMoving = true
-  end
-  if finderLens.y >= finderLens.size + playableArea.y and
-    love.keyboard.isDown('up', 'w') then
-      finderLens.y = finderLens.y - finderLens.speed * dt
-      isMoving = true
-  end
-  if not love.keyboard.isDown('up', 'down', 'left', 'right',
-    'w', 'a', 's', 'd') then
-    isMoving = false
+  if not busted and timeElapsed > 5 then
+    if finderLens.x <= roomWidth + playableArea.x and
+      love.keyboard.isDown('right', 'd') then
+        finderLens.x = finderLens.x + finderLens.speed * dt
+        isMoving = true
+    end
+    if finderLens.x >= finderLens.size + playableArea.x and
+      love.keyboard.isDown('left', 'a') then
+        finderLens.x = finderLens.x - finderLens.speed * dt
+        isMoving = true
+    end
+    if finderLens.y <= roomHeight + playableArea.y and
+      love.keyboard.isDown('down', 's') then
+        finderLens.y = finderLens.y + finderLens.speed * dt
+        isMoving = true
+    end
+    if finderLens.y >= finderLens.size + playableArea.y and
+      love.keyboard.isDown('up', 'w') then
+        finderLens.y = finderLens.y - finderLens.speed * dt
+        isMoving = true
+    end
+    if not love.keyboard.isDown('up', 'down', 'left', 'right',
+      'w', 'a', 's', 'd') then
+      isMoving = false
+    end
   end
 
   -- Enemy AI controller
@@ -183,7 +195,7 @@ function level1update(dt)
       if distanceBetween(clues[i].x, clues[i].y, finderLens.x, finderLens.y) < clues[i].size then
         clueColor[i] = clueColor[i] + (0.3 * dt)
         if love.audio.getActiveSourceCount() < 2 and clues[i].update_state == false and allowSpeak and clueColor[i] < 0.9 then
-          ghostVoice[math.floor(math.random(1,5))]:play()
+          ghostVoice[math.floor(math.random(1,4))]:play()
           speakTimer()
         end
         if clueColor[i] >= 1 and clues[i].update_state == false then
@@ -197,6 +209,13 @@ function level1update(dt)
   --  Win condition
   if clues[5].update_state then
     win = true
+    levelFader = levelFader + 1 * dt
+    if levelFader >= 1 then
+      bgm:stop()
+      levelClear:play()
+      love.timer.sleep(2)
+      love.load()
+    end
   end
 
   -- Escape key back to main menu
@@ -212,19 +231,30 @@ end
 ---------------------------------
 
 function level1draw()
-  --love.graphics.draw(alley)
    -- Each pixel touched by the circle will have its stencil value set to 1. The rest will be 0.
    love.graphics.stencil(finderLensStencil, "replace", 1)
 
-   if clues[1].update_state == false and timeElapsed > 5 and clueColor[1] > 0.3 then
-     drawText("Oh! I think we passed a clue - let's get a closer look!")
+   love.graphics.draw(bgLevel1, 0, -200, 0, 0.4, 0.4)
+   love.graphics.setColor(0, 0, 0, 0.5)
+   love.graphics.rectangle("fill", 0, 0, 800, 600)
+
+   love.graphics.setColor(1,1,1)
+
+   --if restart == false then
+
+   if clues[1].update_state == false and timeElapsed > 10 and clueColor[1] > 0.3 then
+     drawText("Oh? I think that's a clue - let's get a closer look!")
+   elseif clues[1].update_state == false and timeElapsed > 8 and clueColor[1] <= 0.3 then
+     drawText("But! We are going to look for clues anyway - use the arrow keys to snoop around.")
    elseif clues[1].update_state == false and timeElapsed > 5 and clueColor[1] <= 0.3 then
-     drawText("There must be a clue around here somewhere...")
-   elseif clues[2].update_state == false and timeElapsed > 5 and clueColor[2] > 0.3 then
+     drawText("You know, I'm not sure if anything has actually happened here.")
+   elseif clues[1].update_state == false and timeElapsed > 1 and clueColor[1] <= 0.3 then
+     drawText("Hi rookie! Welcome to the scene of the, uh... crime.")
+   elseif clues[2].update_state == false and timeElapsed > 10 and clueColor[2] > 0.3 then
      drawText("Aha - another clue! Let's get a closer look at that.")
-   elseif clues[2].update_state == false and timeElapsed > 5 and clueColor[2] <= 0.3 then
-     drawText("Wow, rookie! You found a clue! Keep looking while I ponder this.")
-   elseif clues[3].update_state == false and timeElapsed > 5 and clueColor[3] <= 0.3 then
+   elseif clues[2].update_state == false and timeElapsed > 10 and clueColor[2] <= 0.3 then
+     drawText("Wow, rookie! You found a clue! Keep looking while I ponder the meaning of this...")
+   elseif clues[3].update_state == false and timeElapsed > 10 and clueColor[3] <= 0.3 then
      drawText("Uh-oh. Looks like someone doesn't want us snooping around... let's try to avoid him.")
    end
 
@@ -234,10 +264,10 @@ function level1draw()
    love.graphics.draw(ghostAnim.spriteSheet, ghostAnim.quads[spriteNum0], 0, 270, 0, 1)
 
    -- Draw playable area
-   love.graphics.setColor(1, 1, 1)
+   love.graphics.setColor(0.5, 0.5, 0.5)
    love.graphics.rectangle("line", playableArea.x, playableArea.y,
       playableArea.size_x, playableArea.size_y)
-   love.graphics.setColor(bgColor)
+   love.graphics.setColor(0.15, 0.15, 0.15, 0.5)
    love.graphics.rectangle("fill", playableArea.x, playableArea.y,
       playableArea.size_x, playableArea.size_y)
 
@@ -259,6 +289,10 @@ function level1draw()
    end
    --enemy2:draw()
 
+ love.graphics.setColor(0,0,0,levelFader)
+ love.graphics.rectangle("fill", 0, 0, 800, 600)
+
+  -- Win condition controller
   if win then
     love.graphics.setColor(1,1,1)
     local spriteNum1 = math.floor(
@@ -270,9 +304,7 @@ function level1draw()
       love.graphics.getHeight() / 2 - 125, 0, 1)
   end
 
-  love.graphics.setColor(0,0,0,levelFader)
-  love.graphics.rectangle("fill", 0, 0, 800, 600)
-
+  -- Loss condition controller
   if distanceBetween(enemy1.x, enemy1.y, finderLens.x, finderLens.y) <
     enemy1.size and enemy1.draw_state then
       love.graphics.setColor(1,1,1)
@@ -299,7 +331,7 @@ end
 function drawText(text)
   love.graphics.draw(speechBubble, 17, 100)
   love.graphics.setColor(0.3, 0.3, 0.3)
-  love.graphics.printf(text, 30, 110, 200, "center")
+  love.graphics.printf(text, 30, 120, 200, "center")
 end
 
 -- Animation controller

@@ -40,4 +40,5 @@ function Enemy:draw()
      love.graphics.draw(self.image, self.x, self.y, 0,
         1, 1, self.origin_x, self.origin_y)
       end
+      
 end
