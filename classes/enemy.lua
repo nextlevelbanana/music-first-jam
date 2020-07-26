@@ -17,12 +17,13 @@ function Enemy.new(self, u_state, d_state, x, y)
   self.update_state = u_state
   self.draw_state = d_state
   self.previous_x = 0
+  self.timeElapsed = 0
 end
 
 function Enemy:update(target, speed, dt)
-  timeElapsed = timeElapsed + 1 * dt
+  self.timeElapsed = self.timeElapsed + 1 * dt
 
-  if timeElapsed > 2 then
+  if self.timeElapsed > 3 then
     self.angle = math.atan2(target.y - self.y, target.x - self.x)
     cos = math.cos(self.angle)
     sin = math.sin(self.angle)

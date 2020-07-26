@@ -6,7 +6,7 @@ require("classes/button")
 local cron = require("libs/cron")
 local tween = require("libs/tween")
 
-local background = love.graphics.newImage("assets/backgrounds/bg_title.jpg")
+local background = love.graphics.newImage("assets/backgrounds/bg_title.png")
 
 title = {}
 title.name = "ghost detective"
@@ -34,7 +34,7 @@ buttonExit = Button(550, posExit - 10, "Exit", rockwell_button)
 function titleload()
 
   -- Main Menu audio
-  bgm = love.audio.newSource("assets/music/main_theme.wav", "static")
+  bgm = love.audio.newSource("assets/music/main_theme.ogg", "static")
   bgmVolume = 0.5
   bgm:setLooping(true)
   bgm:setVolume(bgmVolume)
@@ -68,7 +68,7 @@ end
 function titledraw()
   love.graphics.setBackgroundColor(0.2, 0.2, 0.2)
   love.graphics.setColor(1,1,1)
-  love.graphics.draw(background, 0, 0, 0, 0.5, 0.5)
+  love.graphics.draw(background, 0, 0, 0, 0.25, 0.25)
   love.graphics.setFont(rockwell_title)
   love.graphics.printf(title.name, title.x, title.y, 450)
 
@@ -130,15 +130,3 @@ function allowMoveTimer()
   end
   moveClock = cron.after(0.3, function() allowMove = true end)
 end
-
---
--- function distanceBetween (x1, y1, x2, y2)
--- 	return math.sqrt((y2-y1)^2 + (x2-x1)^2)
--- end
-
---
--- function checkButtonPress(x, y)
---   if love.mouse.isDown(1) and love.mouse.getX() <= x and love.mouse.getY() <= y then
---     return true
---   end
--- end

@@ -25,7 +25,7 @@ for i = 1,#letters do
   --letterChime[i].played = false
 end
 
-local bgLevel1 = love.graphics.newImage("assets/backgrounds/bg_level1.jpg")
+local bgLevel1 = love.graphics.newImage("assets/backgrounds/bg_level1.png")
 
 local restart = false
 
@@ -99,6 +99,9 @@ function level1load()
   local speakClock
   allowSpeak = true
   levelFader = 0
+
+  local sceneClock
+  allowChange = false
 end
 
 ---------------------------------
@@ -124,10 +127,11 @@ function level1update(dt)
   timeElapsed = timeElapsed + 1 * dt
 
   if speakClock then speakClock:update(dt) end
+  if sceneClock then sceneClock:update(dt) end
 
   -- Loss condition controller
   if not bgm:isPlaying() and not busted then
-    bgm = love.audio.newSource("assets/music/xylo_marim_perc_loop.wav", "static")
+    bgm = love.audio.newSource("assets/music/bgm_level1.ogg", "static")
     bgm:setVolume(0.5)
     bgm:play()
   elseif busted then
@@ -181,10 +185,12 @@ function level1update(dt)
 
   -- Enemy AI controller
   if not win and clue2.update_state then
-    enemy1:update(finderLens, enemySpeed, dt)
-    enemy1.update_state = true
     enemy1.draw_state = true
     if clue3.update_state then
+      enemy1.update_state = true
+      enemy1:update(finderLens, enemySpeed, dt)
+    end
+    if clue4.update_state then
       enemySpeed = 100
     end
   end
@@ -210,15 +216,19 @@ function level1update(dt)
     end
   end
 
+  --clue5.update_state = true
   --  Win condition
-  if clues[5].update_state then
+  if clue5.update_state then
     win = true
     levelFader = levelFader + 1 * dt
     if levelFader >= 1 then
       bgm:stop()
       levelClear:play()
-      love.timer.sleep(3)
-      love.load()
+      love.timer.sleep(2)
+      --sceneTimer()
+      --if allowChange then
+        love.load()
+    --  end
     end
   end
 
@@ -245,7 +255,7 @@ function level1draw()
    love.graphics.setColor(1,1,1)
 
    -- Clue 1:
-   if clues[1].update_state == false and timeElapsed > 5 and clueColor[1] > 0.3 then
+   if clues[1].update_state == false and clueColor[1] > 0.3 then
      drawText("Oh? I think that's a clue - let's get a closer look!")
    elseif clues[1].update_state == false and restart == true then
      drawText("Let's look for clues! Use the arrow keys to find them.")
@@ -254,7 +264,7 @@ function level1draw()
    elseif clues[1].update_state == false and timeElapsed > 5 then
      drawText("You know, I'm not sure if anything has actually happened here.")
    elseif clues[1].update_state == false and timeElapsed > 1 and clueColor[1] <= 0.3 then
-     drawText("Hi rookie! Welcome to the scene of the, um \n... \n...crime.")
+     drawText("Hi rookie! Welcome to the scene of the...\num... \n... crime.")
    -- Clue 2
    elseif clues[2].update_state == false and timeElapsed > 10 and clueColor[2] > 0.3 then
      drawText("Aha - another clue! Let's get a closer look at that.")
@@ -262,15 +272,21 @@ function level1draw()
      drawText("Wow, rookie! You found a clue! Keep looking while I ponder the meaning of this...")
    -- Clue 3
    elseif clues[3].update_state == false and timeElapsed > 10 and clueColor[3] > 0.3 then
-     drawText("There's our clue - you're faster than that ghost, so come back around if you have to!")
+     drawText("'EG'... egg? Ego? Egalitarian? I think we're onto something big here. Maybe.")
    elseif clues[3].update_state == false and timeElapsed > 10 and clueColor[3] <= 0.3 then
-     drawText("Uh-oh. Looks like someone doesn't want us snooping around... let's try to avoid him.")
+     drawText("Hm. That ghost doesn't look too friendly. We should probably avoid him.")
    -- Clue 4
- elseif clues[4].update_state == false and timeElapsed > 10 and clueColor[4] > 0.3 then
+   elseif clues[4].update_state == false and timeElapsed > 10 and clueColor[4] > 0.3 then
      drawText("Another clue - get back to it when you can and hover over it to decode!")
+   elseif clues[4].update_state == false and enemy1.timeElapsed > 3 and clueColor[4] <= 0.3 and enemy1.update_state then
+     drawText("Uh-oh. Looks like someone doesn't want us snooping around!")
    elseif clues[4].update_state == false and timeElapsed > 10 and clueColor[4] <= 0.3 then
-     drawText("Nice, but uh... our neighbor here seems to be speeding up.")
-
+     drawText("'EGB'... nope. I'm stumped.")
+   -- Clue 5
+ elseif clues[5].update_state == false and timeElapsed > 10 and clueColor[5] > 0.3 then
+     drawText("I think that's the last one - hurry!")
+   elseif clues[5].update_state == false and timeElapsed > 10 and clueColor[5] <= 0.3 then
+     drawText("Nice, but uh... our neighbor here seems to be speeding up. Hurry to the next clue!")
    end
 
    love.graphics.setColor(1, 1, 1)
@@ -373,4 +389,11 @@ function speakTimer()
     allowSpeak = false
   end
   speakClock = cron.after(3, function() allowSpeak = true end)
+end
+
+function sceneTimer()
+  if allowChange then
+    allowChange = false
+  end
+  sceneClock = cron.after(1, function() allowChange = true end)
 end
