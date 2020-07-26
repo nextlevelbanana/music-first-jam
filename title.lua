@@ -34,7 +34,7 @@ buttonExit = Button(550, posExit - 10, "Exit", rockwell_button)
 function titleload()
 
   -- Main Menu audio
-  bgm = love.audio.newSource("assets/music/main_theme.wav", "stream")
+  bgm = love.audio.newSource("assets/music/main_theme.wav", "static")
   bgmVolume = 0.5
   bgm:setLooping(true)
   bgm:setVolume(bgmVolume)

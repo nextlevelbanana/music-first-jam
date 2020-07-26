@@ -127,7 +127,7 @@ function level1update(dt)
 
   -- Loss condition controller
   if not bgm:isPlaying() and not busted then
-    bgm = love.audio.newSource("assets/music/xylo_marim_perc_loop.wav", "stream")
+    bgm = love.audio.newSource("assets/music/xylo_marim_perc_loop.wav", "static")
     bgm:setVolume(0.5)
     bgm:play()
   elseif busted then
@@ -267,7 +267,7 @@ function level1draw()
      drawText("Uh-oh. Looks like someone doesn't want us snooping around... let's try to avoid him.")
    -- Clue 4
  elseif clues[4].update_state == false and timeElapsed > 10 and clueColor[4] > 0.3 then
-     drawText("There's our clue - you're faster than that ghost, so come back around if you have to!")
+     drawText("Another clue - get back to it when you can and hover over it to decode!")
    elseif clues[4].update_state == false and timeElapsed > 10 and clueColor[4] <= 0.3 then
      drawText("Nice, but uh... our neighbor here seems to be speeding up.")
 
