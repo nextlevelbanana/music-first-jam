@@ -16,6 +16,9 @@ function Button:update(dt)
 end
 
 function Button:draw()
+  love.graphics.setColor(0.1, 0.1, 0.1, 0.5)
+  love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
+  love.graphics.setColor(0.9, 0.9, 0.9, 1)
   love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
   love.graphics.setFont(self.font)
   love.graphics.print(self.text, self.x+25, self.y+5)

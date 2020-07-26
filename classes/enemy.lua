@@ -6,20 +6,20 @@ Enemy = Object.extend(Object)
 local timeElapsed = 0
 
 function Enemy.new(self, u_state, d_state, x, y)
+  --self.anim = newAnimation(love.graphics.newImage("assets/enemies/angryAnim.png"), 250, 250, 4)
   self.x = x
   self.y = y
   self.speed = 75
   self.angle = 0
-  self.image = love.graphics.newImage("assets/enemies/angry.png")
-  self.size = 40
-  self.origin_x = self.image:getWidth() / 2
-  self.origin_y = self.image:getHeight() / 2
+  self.size = 50
+  self.origin_x = 125
+  self.origin_y = 125
   self.update_state = u_state
   self.draw_state = d_state
   self.previous_x = 0
 end
 
-function Enemy:update(target, dt)
+function Enemy:update(target, speed, dt)
   timeElapsed = timeElapsed + 1 * dt
 
   if timeElapsed > 2 then
@@ -27,18 +27,16 @@ function Enemy:update(target, dt)
     cos = math.cos(self.angle)
     sin = math.sin(self.angle)
     self.previous_x = self.x
-    self.x = self.x + self.speed * cos * dt
-    self.y = self.y + self.speed * sin * dt
+    self.x = self.x + math.max(self.speed, speed)  * cos * dt
+    self.y = self.y + math.max(self.speed, speed) * sin * dt
   end
 end
 
-function Enemy:draw()
+function Enemy:draw(anim)
+  local spriteNum = math.floor(anim.currentTime / anim.duration * #anim.quads) + 1
   if self.previous_x > self.x then
-    love.graphics.draw(self.image, self.x, self.y, 0,
-       -1, 1, self.origin_x, self.origin_y)
-   else
-     love.graphics.draw(self.image, self.x, self.y, 0,
-        1, 1, self.origin_x, self.origin_y)
-      end
-      
+    love.graphics.draw(anim.spriteSheet, anim.quads[spriteNum], self.x, self.y, 0, -1, 1, self.origin_x, self.origin_y)
+  else
+    love.graphics.draw(anim.spriteSheet, anim.quads[spriteNum], self.x, self.y, 0, 1, 1, self.origin_x, self.origin_y)
+  end
 end

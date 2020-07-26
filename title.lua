@@ -1,6 +1,6 @@
-rockwell_title = love.graphics.newFont("fonts/Rockwell.TTF", 150)
-rockwell_button = love.graphics.newFont("fonts/Rockwell.TTF", 30)
-rockwell_speech = love.graphics.newFont("fonts/Rockwell.TTF", 28)
+rockwell_title = love.graphics.newFont("assets/fonts/Rockwell.TTF", 150)
+rockwell_button = love.graphics.newFont("assets/fonts/Rockwell.TTF", 30)
+rockwell_speech = love.graphics.newFont("assets/fonts/Rockwell.TTF", 26)
 require("classes/button")
 
 local cron = require("libs/cron")
@@ -14,18 +14,18 @@ title.x = 50
 title.y = -200
 title.font = rockwell_title
 
-titleTween = tween.new(2, title, {y = 200}, 'outCubic')
+titleTween = tween.new(2, title, {y = 0}, 'outCubic')
 
 cursor = {}
 cursor.x = 500
-cursor.y = 260
+cursor.y = 350
 cursor.angle = 0
 cursor.scale = 1
 cursor.image = love.graphics.newImage("assets/temp/finderHandleSmall.png")
 
-posStart = 260
-posCredits = 330
-posExit = 400
+posStart = cursor.y
+posCredits = posStart + 70
+posExit = posCredits + 70
 
 buttonStart = Button(550, posStart - 10, "New Game", rockwell_button)
 buttonCredits = Button(550, posCredits - 10, "Credits", rockwell_button)
@@ -75,6 +75,8 @@ function titledraw()
   buttonStart:draw()
   buttonCredits:draw()
   buttonExit:draw()
+  love.graphics.printf("press SPACE to start", 0, 550, 800, "center")
+  --love.graphics.printf(text, x, y, limit, align, r, sx, sy, ox, oy, kx, ky)
 
   love.graphics.draw(cursor.image, cursor.x, cursor.y, cursor.angle, cursor.scale, cursor.scale, cursor.origin_x)
   love.graphics.setColor(0,0,0,titleFader)
