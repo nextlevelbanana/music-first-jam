@@ -9,7 +9,7 @@ function Enemy.new(self, u_state, d_state, x, y)
   --self.anim = newAnimation(love.graphics.newImage("assets/enemies/angryAnim.png"), 250, 250, 4)
   self.x = x
   self.y = y
-  self.speed = 75
+  self.speed = 50
   self.angle = 0
   self.size = 50
   self.origin_x = 125
@@ -20,14 +20,17 @@ function Enemy.new(self, u_state, d_state, x, y)
   self.timeElapsed = 0
 end
 
-function Enemy:update(target, speed, dt)
+function Enemy:update(target, isVisible, speed, dt)
   self.timeElapsed = self.timeElapsed + 1 * dt
 
-  if self.timeElapsed > 3 then
+  if self.timeElapsed > 3 and isVisible then
     self.angle = math.atan2(target.y - self.y, target.x - self.x)
     cos = math.cos(self.angle)
     sin = math.sin(self.angle)
     self.previous_x = self.x
+    self.x = self.x + math.max(self.speed, speed)  * cos * dt
+    self.y = self.y + math.max(self.speed, speed) * sin * dt
+  elseif isVisible == false then
     self.x = self.x + math.max(self.speed, speed)  * cos * dt
     self.y = self.y + math.max(self.speed, speed) * sin * dt
   end

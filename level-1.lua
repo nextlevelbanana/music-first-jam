@@ -1,32 +1,31 @@
 require("classes/enemy")
 require("classes/clue")
 
-letters = {"E", "G", "B", "D", "F"}
-numOfClues = #letters
+local letters = {"E", "G", "B", "D", "F"}
+local numOfClues = #letters
 
-bgColor = {0.15, 0.15, 0.15, 0}
-speechBubble = love.graphics.newImage("assets/temp/speechBubbleTemp.png")
+local bgColor = {0.15, 0.15, 0.15, 0}
+local speechBubble = love.graphics.newImage("assets/temp/speechBubbleTemp.png")
 
 -- Audio and SFX
-levelClear = love.audio.newSource("assets/music/level_clear.wav", "static")
+local levelClear = love.audio.newSource("assets/music/level_clear.wav", "static")
 
-gameOver = love.audio.newSource("assets/music/game_over.wav", "static")
+local gameOver = love.audio.newSource("assets/music/game_over.wav", "static")
 gameOver:setVolume(0.3)
 
-ghostVoice = {}
-for i = 0,4 do
-  table.insert(ghostVoice, love.audio.newSource("assets/sfx/hmm"..i..".wav", "static"))
-end
-
-letterChime = {}
-for i = 1,#letters do
+local letterChime = {}
+for i = 1,numOfClues do
   table.insert(letterChime, love.audio.newSource("assets/sfx/letter_clues/marim_"..letters[i]..".wav", "static"))
   letterChime[i]:setVolume(0.3)
   --letterChime[i].played = false
 end
 
-local bgLevel1 = love.graphics.newImage("assets/backgrounds/bg_level1.png")
+local ghostVoice = {}
+for i = 0,4 do
+  table.insert(ghostVoice, love.audio.newSource("assets/sfx/hmm"..i..".wav", "static"))
+end
 
+local bgLevel1 = love.graphics.newImage("assets/backgrounds/bg_level1.png")
 local restart = false
 
 ---------------------------------
@@ -35,15 +34,13 @@ local restart = false
 
 function level1load()
 
-  -- music = {volume = bgmVolume, path = bgm}
-  -- musicTween = tween.new(2, music, {volume = 0.0})
-
   ghostAnim = newAnimation(love.graphics.newImage("assets/ghost_detective/idleAnim.png"), 250, 250, 4)
   winStamp = newAnimation(love.graphics.newImage("assets/ghost_detective/winStamp.png"), 250, 250, 4)
   loseStamp = newAnimation(love.graphics.newImage("assets/ghost_detective/loseStamp.png"), 250, 250, 4)
   angryAnim = newAnimation(love.graphics.newImage("assets/enemies/angryAnim.png"), 250, 250, 1)
 
   anims = {ghostAnim, winStamp, loseStamp, angryAnim}
+
   -- Playable area container
   playableArea = {}
   playableArea.x = 250
@@ -63,6 +60,7 @@ function level1load()
   finderLens.origin_y = finderLens.image:getHeight() / 2
   finderLens.offset_x = 50
   finderLens.offset_y = 48
+  finderLens.visibility = true
   isMoving = false
 
   -- Instantiate enemies for this level
@@ -88,20 +86,26 @@ function level1load()
   -- Bounding box for keeping the finderLens in the playable area
   roomWidth = playableArea.size_x - finderLens.size
   roomHeight = playableArea.size_y - finderLens.size
-  -- Unsorted variables
+
+  -- Condition variables for all prompts
   win = false
   timeElapsed = 0
   busted = false
-  -- Unsorted set conditions
-  love.graphics.newFont(35)
-  love.graphics.setBackgroundColor(0.2, 0.2, 0.2, 0.4)
 
+  -- Cron / clock variables
   local speakClock
   allowSpeak = true
   levelFader = 0
-
   local sceneClock
   allowChange = false
+  local invisClock
+  allowInvis = true
+  local duration
+  visible = true
+
+  -- Unsorted set conditions
+  love.graphics.newFont(35)
+  love.graphics.setBackgroundColor(0.2, 0.2, 0.2, 0.4)
 end
 
 ---------------------------------
@@ -120,6 +124,14 @@ end
 
 function level1update(dt)
 
+  if love.keyboard.isDown('space') and allowInvis and timeElapsed > 10 and not busted then
+    finderLens.visibility = false
+    invisDuration()
+    invisibilityTimer()
+  elseif visible then
+    finderLens.visibility = true
+  end
+
   if not love.graphics.setFont(rockwell_speech) then
     love.graphics.setFont(rockwell_speech)
   end
@@ -128,6 +140,8 @@ function level1update(dt)
 
   if speakClock then speakClock:update(dt) end
   if sceneClock then sceneClock:update(dt) end
+  if invisClock then invisClock:update(dt) end
+  if duration then duration:update(dt) end
 
   -- Loss condition controller
   if not bgm:isPlaying() and not busted then
@@ -156,7 +170,7 @@ function level1update(dt)
   end
 
   -- Player controller using arrow keys or WASD
-  if not busted and (timeElapsed > 5 or restart) then
+  if busted == false and (timeElapsed > 5 or restart) and finderLens.visibility then
     if finderLens.x <= roomWidth + playableArea.x and
       love.keyboard.isDown('right', 'd') then
         finderLens.x = finderLens.x + finderLens.speed * dt
@@ -188,7 +202,7 @@ function level1update(dt)
     enemy1.draw_state = true
     if clue3.update_state then
       enemy1.update_state = true
-      enemy1:update(finderLens, enemySpeed, dt)
+      enemy1:update(finderLens, visible, enemySpeed, dt)
     end
     if clue4.update_state then
       enemySpeed = 100
@@ -196,7 +210,7 @@ function level1update(dt)
   end
 
   -- Clue handler
-  for i = 1,5 do
+  for i = 1,numOfClues do
     if clues[i].update_state and i < #letters then
       clues[i+1]:update(clueColor[i+1], dt)
     end
@@ -218,13 +232,14 @@ function level1update(dt)
 
   --clue5.update_state = true
   --  Win condition
-  if clue5.update_state then
+  if clues[numOfClues].update_state then
     win = true
     levelFader = levelFader + 1 * dt
     if levelFader >= 1 then
       bgm:stop()
       levelClear:play()
-      love.timer.sleep(2)
+      clear_level1 = true
+      love.timer.sleep(4)
       --sceneTimer()
       --if allowChange then
         love.load()
@@ -248,7 +263,7 @@ function level1draw()
    -- Each pixel touched by the circle will have its stencil value set to 1. The rest will be 0.
    love.graphics.stencil(finderLensStencil, "replace", 1)
 
-   love.graphics.draw(bgLevel1, 0, -200, 0, 0.4, 0.4)
+   love.graphics.draw(bgLevel1, 0, 0, 0, 0.25, 0.25)
    love.graphics.setColor(0, 0, 0, 0.5)
    love.graphics.rectangle("fill", 0, 0, 800, 600)
 
@@ -264,7 +279,7 @@ function level1draw()
    elseif clues[1].update_state == false and timeElapsed > 5 then
      drawText("You know, I'm not sure if anything has actually happened here.")
    elseif clues[1].update_state == false and timeElapsed > 1 and clueColor[1] <= 0.3 then
-     drawText("Hi rookie! Welcome to the scene of the...\num... \n... crime.")
+     drawText("Hi rookie! Welcome to the scene of the. . .\num. . . \ncrime.")
    -- Clue 2
    elseif clues[2].update_state == false and timeElapsed > 10 and clueColor[2] > 0.3 then
      drawText("Aha - another clue! Let's get a closer look at that.")
@@ -281,10 +296,10 @@ function level1draw()
    elseif clues[4].update_state == false and enemy1.timeElapsed > 3 and clueColor[4] <= 0.3 and enemy1.update_state then
      drawText("Uh-oh. Looks like someone doesn't want us snooping around!")
    elseif clues[4].update_state == false and timeElapsed > 10 and clueColor[4] <= 0.3 then
-     drawText("'EGB'... nope. I'm stumped.")
+     drawText("'EGB'... well, shoot. There goes that.")
    -- Clue 5
  elseif clues[5].update_state == false and timeElapsed > 10 and clueColor[5] > 0.3 then
-     drawText("I think that's the last one - hurry!")
+     drawText("I think that's the last one - hurry! Use the SPACE bar to hide if he gets too close!")
    elseif clues[5].update_state == false and timeElapsed > 10 and clueColor[5] <= 0.3 then
      drawText("Nice, but uh... our neighbor here seems to be speeding up. Hurry to the next clue!")
    end
@@ -302,7 +317,7 @@ function level1draw()
    love.graphics.rectangle("fill", playableArea.x, playableArea.y,
       playableArea.size_x, playableArea.size_y)
 
-   for i = 1,5 do
+   for i = 1,#clues do
      if clues[i].draw_state then
        clues[i]:draw(clueColor[i], bgColor, letters[i])
        if clueColor[i] >= 1 and i < (#letters) then
@@ -312,13 +327,18 @@ function level1draw()
    end
 
    love.graphics.setStencilTest() -- Handles wild stencil stuff I don't fully understand
-   love.graphics.setColor(1, 1, 1) -- Color for finderHandle
+   if finderLens.visibility == false then
+     love.graphics.setColor(1, 1, 1, 0.5) -- Color for finderHandle
+   else
+     love.graphics.setColor(1, 1, 1, 1) -- Color for finderHandle
+   end
    love.graphics.draw(finderLens.image, finderLens.x - finderLens.offset_x, finderLens.y - finderLens.offset_y) -- Offset numbers that will change with new artwork for finderHandle
+
+   love.graphics.setColor(1, 1, 1, 1)
 
    if clue2.update_state then
      enemy1:draw(angryAnim)
    end
-   --enemy2:draw()
 
  love.graphics.setColor(0,0,0,levelFader)
  love.graphics.rectangle("fill", 0, 0, 800, 600)
@@ -336,8 +356,8 @@ function level1draw()
   end
 
   -- Loss condition controller
-  if distanceBetween(enemy1.x, enemy1.y, finderLens.x, finderLens.y) <
-    enemy1.size and enemy1.draw_state then
+  if finderLens.visibility and distanceBetween(enemy1.x, enemy1.y, finderLens.x, finderLens.y) <
+    enemy1.size and enemy1.draw_state and win == false then
       love.graphics.setColor(1,1,1)
       local spriteNum1 = math.floor(
         loseStamp.currentTime / loseStamp.duration *
@@ -396,4 +416,18 @@ function sceneTimer()
     allowChange = false
   end
   sceneClock = cron.after(1, function() allowChange = true end)
+end
+
+function invisibilityTimer()
+  if allowInvis then
+    allowInvis = false
+  end
+  invisClock = cron.after(10, function() allowInvis = true end)
+end
+
+function invisDuration()
+  if visible then
+    visible = false
+  end
+  duration = cron.after(2, function() visible = true end)
 end

@@ -6,7 +6,7 @@ require("classes/button")
 local cron = require("libs/cron")
 local tween = require("libs/tween")
 
-local background = love.graphics.newImage("assets/backgrounds/bg_title.png")
+background = love.graphics.newImage("assets/backgrounds/bg_title.png")
 
 title = {}
 title.name = "ghost detective"
