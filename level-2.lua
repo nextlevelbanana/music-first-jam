@@ -1,32 +1,31 @@
 require("classes/enemy")
 require("classes/clue")
 
-letters = {"F", "A", "C", "E"}
-numOfClues = #letters
+local letters = {"F", "A", "C", "E"}
+local numOfClues = #letters
 
-bgColor = {0.15, 0.15, 0.15, 0}
-speechBubble = love.graphics.newImage("assets/temp/speechBubbleTemp.png")
+local bgColor = {0.15, 0.15, 0.15, 0}
+local speechBubble = love.graphics.newImage("assets/temp/speechBubbleTemp.png")
 
 -- Audio and SFX
-levelClear = love.audio.newSource("assets/music/level_clear.wav", "static")
+local levelClear = love.audio.newSource("assets/music/level_clear.wav", "static")
 
-gameOver = love.audio.newSource("assets/music/game_over.wav", "static")
+local gameOver = love.audio.newSource("assets/music/game_over.wav", "static")
 gameOver:setVolume(0.3)
 
-ghostVoice = {}
+local ghostVoice = {}
 for i = 0,4 do
   table.insert(ghostVoice, love.audio.newSource("assets/sfx/hmm"..i..".wav", "static"))
 end
 
-letterChime = {}
-for i = 1,#letters do
+local letterChime = {}
+for i = 1,numOfClues do
   table.insert(letterChime, love.audio.newSource("assets/sfx/letter_clues/marim_"..letters[i]..".wav", "static"))
   letterChime[i]:setVolume(0.3)
   --letterChime[i].played = false
 end
 
-local bgLevel1 = love.graphics.newImage("assets/backgrounds/bg_level2.png")
-
+local bgLevel2 = love.graphics.newImage("assets/backgrounds/bg_level2.png")
 local restart = false
 
 ---------------------------------
@@ -35,15 +34,13 @@ local restart = false
 
 function level2load()
 
-  -- music = {volume = bgmVolume, path = bgm}
-  -- musicTween = tween.new(2, music, {volume = 0.0})
-
   ghostAnim = newAnimation(love.graphics.newImage("assets/ghost_detective/idleAnim.png"), 250, 250, 4)
   winStamp = newAnimation(love.graphics.newImage("assets/ghost_detective/winStamp.png"), 250, 250, 4)
   loseStamp = newAnimation(love.graphics.newImage("assets/ghost_detective/loseStamp.png"), 250, 250, 4)
   angryAnim = newAnimation(love.graphics.newImage("assets/enemies/angryAnim.png"), 250, 250, 1)
 
   anims = {ghostAnim, winStamp, loseStamp, angryAnim}
+
   -- Playable area container
   playableArea = {}
   playableArea.x = 250
@@ -69,13 +66,14 @@ function level2load()
   -- Instantiate enemies for this level
   enemySpeed = 75
   enemy1 = Enemy(false, false, 300, 200)
+  enemy2 = Enemy(false, false, 600, 100)
 
   -- Instantiate clues for this level
   clueColor = {}
   for i = 1,#letters do
     table.insert(clueColor, 0.3)
   end
-  clue1 = Clue(false, true, 275, 550, letters[1])
+  clue1 = Clue(false, true, 350, 550, letters[1])
   clue2 = Clue(false, false, 600, 100, letters[2])
   clue3 = Clue(false, false, 400, 400, letters[3])
   clue4 = Clue(false, false, 300, 200, letters[4])
@@ -172,7 +170,7 @@ function level2update(dt)
   end
 
   -- Player controller using arrow keys or WASD
-  if busted == false and (timeElapsed > 5 or restart) and finderLens.visibility then
+  if busted == false and (timeElapsed > 65 or restart) and finderLens.visibility then
     if finderLens.x <= roomWidth + playableArea.x and
       love.keyboard.isDown('right', 'd') then
         finderLens.x = finderLens.x + finderLens.speed * dt
@@ -200,20 +198,23 @@ function level2update(dt)
   end
 
   -- Enemy AI controller
-  if not win and clue2.update_state then
+  if (restart or timeElapsed >= 70) and not win then
     enemy1.draw_state = true
-    if clue1.update_state then
-      allowInvis = true
-      enemy1.update_state = true
-      enemy1:update(finderLens, visible, enemySpeed, dt)
-    end
-    if clue2.update_state then
-      enemySpeed = 100
-    end
+    allowInvis = true
+    enemy1.update_state = true
+    enemy1:update(finderLens, visible, enemySpeed, dt)
   end
 
+  if clue3.update_state and not win then
+    enemySpeed = 100
+    enemy2.draw_state = true
+    enemy2.update_state = true
+    enemy2:update(finderLens, visible, enemySpeed, dt)
+  end
+
+
   -- Clue handler
-  for i = 1,5 do
+  for i = 1,numOfClues do
     if clues[i].update_state and i < #letters then
       clues[i+1]:update(clueColor[i+1], dt)
     end
@@ -235,13 +236,14 @@ function level2update(dt)
 
   --clue5.update_state = true
   --  Win condition
-  if clue5.update_state then
+  if clues[numOfClues].update_state then
     win = true
     levelFader = levelFader + 1 * dt
     if levelFader >= 1 then
       bgm:stop()
       levelClear:play()
-      love.timer.sleep(2)
+      clear_level2 = true
+      love.timer.sleep(4)
       --sceneTimer()
       --if allowChange then
         love.load()
@@ -261,11 +263,11 @@ end
 -- Draw
 ---------------------------------
 
-function level1draw()
+function level2draw()
    -- Each pixel touched by the circle will have its stencil value set to 1. The rest will be 0.
    love.graphics.stencil(finderLensStencil, "replace", 1)
 
-   love.graphics.draw(bgLevel1, 0, 0, 0, 0.25, 0.25)
+   love.graphics.draw(bgLevel2, -400, -250, 0, 0.24, 0.24)
    love.graphics.setColor(0, 0, 0, 0.5)
    love.graphics.rectangle("fill", 0, 0, 800, 600)
 
@@ -273,43 +275,51 @@ function level1draw()
 
    -- SPEECH BLOCK
    -- Clue 1:
-   if clues[1].update_state == false and clueColor[1] > 0.3 then
-     drawText("Oh? I think that's a clue - let's get a closer look!")
-   elseif clues[1].update_state == false and restart == true then
-     drawText("Let's look for clues! Use the arrow keys to find them.")
-   elseif clues[1].update_state == false and timeElapsed > 10 then
-     drawText("")
-   elseif clues[1].update_state == false and timeElapsed > 10 then
+   if clues[1].update_state == false and (timeElapsed > 70 or restart) then
+     drawText("Oh no! More ghosts... rookie! Let's find the clues around here and get a move on!")
+   elseif clues[1].update_state == false and timeElapsed > 65 and not restart then
+     drawText("It's why I became a detective! \n \nDo you think, maybe...?")
+   elseif clues[1].update_state == false and timeElapsed > 60 and not restart then
+     drawText("I've been looking for the clues to how I... you know... became a ghost.")
+   elseif clues[1].update_state == false and timeElapsed > 55 and not restart then
+     drawText("But I've been wondering for a long time now... how did I get here?")
+   elseif clues[1].update_state == false and timeElapsed > 50 and not restart then
+     drawText("That's a very silly note.")
+   elseif clues[1].update_state == false and timeElapsed > 49 and not restart then
      drawText("...")
-   elseif clues[1].update_state == false and timeElapsed > 10 then
-     drawText("'Ehehe... Ghost Buddy is Done For!' ...?")
-   elseif clues[1].update_state == false and timeElapsed > 10 then
+   elseif clues[1].update_state == false and timeElapsed > 45 and not restart then
+     drawText("'Ehehe... Ghost Buddy is Done For!' ...? EGBDF...")
+   elseif clues[1].update_state == false and timeElapsed > 40 and not restart then
      drawText("Oh? You found a note with one of the clues back there? What does it say?")
-   elseif clues[1].update_state == false and timeElapsed > 10 then
+   elseif clues[1].update_state == false and timeElapsed > 35 and not restart then
      drawText("...you don't think that's it? Hm... it does seem awfully irrelevant...")
-   elseif clues[1].update_state == false and timeElapsed > 10 then
-     drawText("Aha! Endearing Gladiator Buys Dog Food! It's from a headline I read one time. I can't believe I remembered that one.")
-   elseif clues[1].update_state == false and timeElapsed > 5 then
+   elseif clues[1].update_state == false and timeElapsed > 30 and not restart then
+     drawText("It's a headline I read one time. I can't believe I remembered that one.")
+   elseif clues[1].update_state == false and timeElapsed > 25 and not restart then
+     drawText("Egg-buh- Aha! \n \nEndearing Gladiator Buys Dog Food! Of course!")
+   elseif clues[1].update_state == false and timeElapsed > 20 and not restart then
      drawText("EGBDF... egg-bi-duf. Hmm...")
-   elseif clues[1].update_state == false and timeElapsed > 1 and clueColor[1] <= 0.3 then
+   elseif clues[1].update_state == false and timeElapsed > 15 and not restart then
+     drawText("I hear it's called 'in too witchin.' It's how I find all my clues! Not all ghosts have it. Now...")
+   elseif clues[1].update_state == false and timeElapsed > 8 and not restart then
+     drawText("This is another spot I'm suspicious of. I'm not sure why, but something tells me there are clues here.")
+   elseif clues[1].update_state == false and timeElapsed > 3 and not restart and clueColor[1] <= 0.3 then
      drawText("Nice work, rookie! What a clue... I wonder what it means? And way to escape that unfriendly ghost!")
    -- Clue 2
    elseif clues[2].update_state == false and timeElapsed > 10 and clueColor[2] > 0.3 then
-     drawText("Aha - another clue! Let's get a closer look at that.")
+     drawText("Another clue! Let's get a closer look at that.")
    elseif clues[2].update_state == false and timeElapsed > 10 and clueColor[2] <= 0.3 then
-     drawText("Wow, rookie! You found a clue! Keep looking while I ponder the meaning of this...")
+     drawText("'F...'' Okay, there must be more.")
    -- Clue 3
    elseif clues[3].update_state == false and timeElapsed > 10 and clueColor[3] > 0.3 then
-     drawText("'EG'... egg? Ego? Egalitarian? I think we're onto something big here. Maybe.")
+     drawText("Wait! Another clue! Oh thank goodness.")
    elseif clues[3].update_state == false and timeElapsed > 10 and clueColor[3] <= 0.3 then
-     drawText("Hm. That ghost doesn't look too friendly. We should probably avoid him.")
+     drawText("'FA.' FAulty brakes? FAther? Oh no...'")
    -- Clue 4
    elseif clues[4].update_state == false and timeElapsed > 10 and clueColor[4] > 0.3 then
-     drawText("Another clue - get back to it when you can and hover over it to decode!")
-   elseif clues[4].update_state == false and enemy1.timeElapsed > 3 and clueColor[4] <= 0.3 and enemy1.update_state then
-     drawText("Uh-oh. Looks like someone doesn't want us snooping around!")
+     drawText("I think that's the last one - let's hurry up and get outta' here!")
    elseif clues[4].update_state == false and timeElapsed > 10 and clueColor[4] <= 0.3 then
-     drawText("'EGB'... nope. I'm stumped.")
+     drawText("My FACulties tell me we're onto something good here.")
    end
 
    love.graphics.setColor(1, 1, 1)
@@ -325,7 +335,7 @@ function level1draw()
    love.graphics.rectangle("fill", playableArea.x, playableArea.y,
       playableArea.size_x, playableArea.size_y)
 
-   for i = 1,5 do
+   for i = 1,numOfClues do
      if clues[i].draw_state then
        clues[i]:draw(clueColor[i], bgColor, letters[i])
        if clueColor[i] >= 1 and i < (#letters) then
@@ -344,10 +354,16 @@ function level1draw()
 
    love.graphics.setColor(1, 1, 1, 1)
 
-   if clue2.update_state then
+   if restart then
+     enemy1.draw_state = true
+   end
+
+   if enemy1.draw_state then
      enemy1:draw(angryAnim)
    end
-   --enemy2:draw()
+   if enemy2.draw_state then
+     enemy2:draw(angryAnim)
+   end
 
  love.graphics.setColor(0,0,0,levelFader)
  love.graphics.rectangle("fill", 0, 0, 800, 600)
@@ -365,6 +381,7 @@ function level1draw()
   end
 
   -- Loss condition controller
+
   if finderLens.visibility and distanceBetween(enemy1.x, enemy1.y, finderLens.x, finderLens.y) <
     enemy1.size and enemy1.draw_state and win == false then
       love.graphics.setColor(1,1,1)
@@ -376,7 +393,21 @@ function level1draw()
         love.graphics.getWidth() / 2 - 125,
         love.graphics.getHeight() / 2 - 125, 0, 1)
       busted = true
-      restart = true
+      --restart = true
+  end
+
+  if finderLens.visibility and distanceBetween(enemy2.x, enemy2.y, finderLens.x, finderLens.y) <
+    enemy2.size and enemy2.draw_state and win == false then
+      love.graphics.setColor(1,1,1)
+      local spriteNum2 = math.floor(
+        loseStamp.currentTime / loseStamp.duration *
+        #loseStamp.quads) + 1
+      love.graphics.draw(
+        loseStamp.spriteSheet, loseStamp.quads[spriteNum2],
+        love.graphics.getWidth() / 2 - 125,
+        love.graphics.getHeight() / 2 - 125, 0, 1)
+      busted = true
+      --restart = true
   end
 end
 
