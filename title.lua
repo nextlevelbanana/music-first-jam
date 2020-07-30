@@ -108,7 +108,7 @@ function titleupdate(dt)
     titleFaderState = true
   elseif love.keyboard.isDown('space') and cursor.y == posCredits then
     love.audio.play(sfxCredits)
-    scene="lore"
+    scene="credits"
   elseif love.keyboard.isDown('space') and cursor.y == posExit then
     love.event.quit(0)
   end
