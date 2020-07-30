@@ -3,10 +3,10 @@ tween = require("libs/tween")
 cron = require("libs/cron")
 
 require("title")
-require("menu")
-require("lore")
+require("credits")
 require("level-1")
 require("level-2")
+require("thanks")
 
 math.randomseed(os.time())
 
@@ -17,6 +17,9 @@ function love.load()
     if clear_level1 and not clear_level2 then
       level2load()
       scene = "level-2"
+    elseif clear_level2 then
+      thanksload()
+      scene="thanks"
     else
       level1load()
       titleload()
@@ -28,14 +31,14 @@ end
 function love.update(dt)
     if scene=="title" then
         titleupdate(dt)
-    elseif scene=="menu" then
-        menuupdate(dt)
     elseif scene=="level-1" then
         level1update(dt)
     elseif scene=="level-2" then
         level2update(dt)
-    elseif scene=="lore" then
-        loreupdate(dt)
+    elseif scene=="credits" then
+        creditsupdate(dt)
+    elseif scene=="thanks" then
+        thanksupdate(dt)
     end
 end
 
@@ -48,8 +51,10 @@ function love.draw()
         level1draw()
     elseif scene=="level-2" then
         level2draw()
-    elseif scene=="lore" then
-        loredraw()
+    elseif scene=="credits" then
+        creditsdraw()
+    elseif scene=="thanks" then
+        thanksdraw()
     else
         love.graphics.print("???", 200,200)
     end

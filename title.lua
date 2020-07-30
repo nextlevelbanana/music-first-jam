@@ -1,6 +1,6 @@
-rockwell_title = love.graphics.newFont("assets/fonts/Rockwell.TTF", 150)
-rockwell_button = love.graphics.newFont("assets/fonts/Rockwell.TTF", 30)
-rockwell_speech = love.graphics.newFont("assets/fonts/Rockwell.TTF", 26)
+font_title = love.graphics.newFont("assets/fonts/Rockwell.TTF", 150)
+font_button = love.graphics.newFont("assets/fonts/Rockwell.TTF", 30)
+font_speech = love.graphics.newFont("assets/fonts/Rockwell.TTF", 26)
 require("classes/button")
 
 local cron = require("libs/cron")
@@ -12,7 +12,7 @@ title = {}
 title.name = "ghost detective"
 title.x = 50
 title.y = -200
-title.font = rockwell_title
+title.font = font_title
 
 titleTween = tween.new(2, title, {y = 0}, 'outCubic')
 
@@ -27,9 +27,9 @@ posStart = cursor.y
 posCredits = posStart + 70
 posExit = posCredits + 70
 
-buttonStart = Button(550, posStart - 10, "New Game", rockwell_button)
-buttonCredits = Button(550, posCredits - 10, "Credits", rockwell_button)
-buttonExit = Button(550, posExit - 10, "Exit", rockwell_button)
+buttonStart = Button(550, posStart - 10, "New Game", font_button)
+buttonCredits = Button(550, posCredits - 10, "Credits", font_button)
+buttonExit = Button(550, posExit - 10, "Exit", font_button)
 
 function titleload()
 
@@ -69,14 +69,13 @@ function titledraw()
   love.graphics.setBackgroundColor(0.2, 0.2, 0.2)
   love.graphics.setColor(1,1,1)
   love.graphics.draw(background, 0, 0, 0, 0.25, 0.25)
-  love.graphics.setFont(rockwell_title)
+  love.graphics.setFont(font_title)
   love.graphics.printf(title.name, title.x, title.y, 450)
 
   buttonStart:draw()
   buttonCredits:draw()
   buttonExit:draw()
   love.graphics.printf("press SPACE to start", 0, 550, 800, "center")
-  --love.graphics.printf(text, x, y, limit, align, r, sx, sy, ox, oy, kx, ky)
 
   love.graphics.draw(cursor.image, cursor.x, cursor.y, cursor.angle, cursor.scale, cursor.scale, cursor.origin_x)
   love.graphics.setColor(0,0,0,titleFader)

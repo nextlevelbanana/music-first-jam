@@ -1,10 +1,10 @@
-function loreupdate()
+function creditsupdate()
   if love.keyboard.isDown('escape') then
     scene = "title"
   end
 end
 
-function loredraw()
+function creditsdraw()
     love.graphics.draw(background, 0, 0, 0, 0.25, 0.25)
     love.graphics.setColor(1,1,1)
     love.graphics.print("Credits", 100,50)

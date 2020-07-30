@@ -132,8 +132,8 @@ function level2update(dt)
     finderLens.visibility = true
   end
 
-  if not love.graphics.setFont(rockwell_speech) then
-    love.graphics.setFont(rockwell_speech)
+  if not love.graphics.setFont(font_speech) then
+    love.graphics.setFont(font_speech)
   end
 
   timeElapsed = timeElapsed + 1 * dt
@@ -280,9 +280,9 @@ function level2draw()
    elseif clues[1].update_state == false and timeElapsed > 65 and not restart then
      drawText("It's why I became a detective! \n \nDo you think, maybe...?")
    elseif clues[1].update_state == false and timeElapsed > 60 and not restart then
-     drawText("I've been looking for the clues to how I... you know... became a ghost.")
+     drawText("I've been searching for the clues to how I... you know... became a ghost.")
    elseif clues[1].update_state == false and timeElapsed > 55 and not restart then
-     drawText("But I've been wondering for a long time now... how did I get here?")
+     drawText("But I've been wondering for some time now... how did I get here?")
    elseif clues[1].update_state == false and timeElapsed > 50 and not restart then
      drawText("That's a very silly note.")
    elseif clues[1].update_state == false and timeElapsed > 49 and not restart then

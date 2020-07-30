@@ -132,8 +132,8 @@ function level1update(dt)
     finderLens.visibility = true
   end
 
-  if not love.graphics.setFont(rockwell_speech) then
-    love.graphics.setFont(rockwell_speech)
+  if not love.graphics.setFont(font_speech) then
+    love.graphics.setFont(font_speech)
   end
 
   timeElapsed = timeElapsed + 1 * dt
@@ -230,7 +230,6 @@ function level1update(dt)
     end
   end
 
-  --clue5.update_state = true
   --  Win condition
   if clues[numOfClues].update_state then
     win = true
@@ -240,10 +239,7 @@ function level1update(dt)
       levelClear:play()
       clear_level1 = true
       love.timer.sleep(4)
-      --sceneTimer()
-      --if allowChange then
-        love.load()
-    --  end
+      love.load()
     end
   end
 
